@@ -40,5 +40,8 @@ int main()
 //    struct proc *proc1;
     copyproc(proc1);
     exit();
+
+
+    
 }
 
