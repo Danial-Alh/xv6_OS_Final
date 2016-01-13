@@ -93,6 +93,6 @@ sys_uptime(void)
 int
 sys_hoseindanial(void)
 {
-    hoseindanial();
+    cprintf("yesssssssssssss, we are victorious!");
     return 0;
 }
