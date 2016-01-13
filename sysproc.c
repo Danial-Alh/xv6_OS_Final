@@ -90,9 +90,3 @@ sys_uptime(void)
   return xticks;
 }
 
-int
-sys_hoseindanial(void)
-{
-    cprintf("yesssssssssssss, we are victorious!");
-    return 0;
-}

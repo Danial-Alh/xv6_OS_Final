@@ -440,3 +440,29 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int
+sys_saveProc(void)
+{
+  int fd;
+  struct test t;
+  t.name = 'd';
+  t.number = 25267;
+
+  fd = sys_open("backup", O_CREATE | O_RDWR);
+  if(fd >= 0) {
+    cprintf(1, "ok: create backup file succeed\n");
+  } else {
+      cprintf(1, "error: create backup file failed\n");
+      return 0;
+  }
+
+  int size = sizeof(t);
+  if(sys_write(fd, &t, size) != size){
+      cprintf(1, "error: write to backup file failed\n");
+      return 0;
+  }
+    cprintf(1, "write ok\n");
+  sys_close(fd);
+  return 0;
+}
