@@ -464,3 +464,10 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+void
+hoseindanial(void)
+{
+    cprintf("yesssssssssssss, we are victorious!");
+    return;
+}
