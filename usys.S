@@ -17,7 +17,7 @@ SYSCALL(write)
 SYSCALL(close)
 SYSCALL(kill)
 SYSCALL(exec)
-SYSCALL(open)
+SYSCALL(open)~/
 SYSCALL(mknod)
 SYSCALL(unlink)
 SYSCALL(fstat)
