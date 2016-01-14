@@ -469,11 +469,13 @@ procdump(void)
 int
 sys_saveProc(void)
 {
-    struct MyProc *myProc;
+    char *myProc;
+    struct proc *p;
 
     int pid_temp = 0;
 
-    if(argint(0, &pid_temp) < 0 || argptr(0, &p, sizeof(struct MyProc*)) < 0)
+    sys_open();
+    if(argint(0, &pid_temp) < 0 || argptr(0, &myProc, sizeof(struct MyProc*)) < 0)
         return -1;
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
