@@ -470,14 +470,15 @@ sys_saveProc(void)
 {
     struct proc *p;
 
-    if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+    int pid_temp = 0;
+
+    if(argint(0, &pid_temp) < 0)
         return -1;
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->pid == pid){
-            p->parent = initproc;
-            if(p->state == ZOMBIE)
-                wakeup1(initproc);
+        if(p->pid == pid_temp){
+            cprintf("damet jarm %s\n", p->name);
         }
     }
+    return 0;
 }
