@@ -7,6 +7,11 @@
 
 #include "fcntl.h"
 
+struct test {
+    char name;
+    int number;
+};
+
 void
 save(void)
 {
@@ -65,9 +70,6 @@ int main()
     saveProc();
 //    load();
 
-//    struct proc *proc1;
-    struct context
-    copyproc(proc1);
     exit();
 
 
