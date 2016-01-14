@@ -1,12 +1,8 @@
 #include "types.h"
+#include "MyStructs.h"
 
 struct stat;
 struct rtcdate;
-
-struct MyProc {
-    char name;
-    int number;
-};
 
 // system calls
 int fork(void);
