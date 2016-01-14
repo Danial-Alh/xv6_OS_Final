@@ -440,3 +440,54 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+
+int
+sys_saveProc(void)
+{
+    int fd;
+    struct file *file;
+    if(argfd(0, &fd, &file) < 0)
+        return -1;
+    if(fd >= 0) {
+        cprintf("ok: create backup file succeed\n");
+    } else {
+        cprintf("error: create backup file failed\n");
+        return -1;
+    }
+
+    int result = 0;
+    result = filewrite(file, (char*)proc, sizeof(struct proc));
+    cprintf("pid kernel mode write: %d\n", proc->pid);
+    proc->ofile[fd] = 0;
+    fileclose(file);
+
+    return result;
+}
+
+
+int
+sys_loadProc(void)
+{
+    int fd;
+    struct file *file;
+    if(argfd(0, &fd, &file) < 0)
+        return -1;
+    if(fd >= 0) {
+        cprintf("ok: read backup file succeed\n");
+    } else {
+        cprintf("error: read backup file failed\n");
+        return -1;
+    }
+
+    int result = 0;
+    struct proc loadedProc;
+    result = fileread(file, (char*)&loadedProc, sizeof(struct proc));
+
+    cprintf("file readed, procName: %s\n", loadedProc.name);
+    cprintf("pid kernel mode read: %d\n", loadedProc.pid);
+    proc->ofile[fd] = 0;
+    fileclose(file);
+
+    return result;
+}

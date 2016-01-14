@@ -5,7 +5,7 @@
 #ifndef XV6_PUBLIC_MYSTRUCTS_H
 #define XV6_PUBLIC_MYSTRUCTS_H
 struct MyProc {
-    char name;
+    char *name;
     int number;
 };
 #endif //XV6_PUBLIC_MYSTRUCTS_H

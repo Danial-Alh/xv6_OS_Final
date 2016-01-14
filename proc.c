@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "MyStructs.h"
 
 struct {
   struct spinlock lock;
@@ -463,23 +464,4 @@ procdump(void)
     }
     cprintf("\n");
   }
-}
-
-int
-sys_saveProc(void)
-{
-//    char *myProc;
-    struct proc *p;
-
-    int pid_temp = 0;
-
-    if(argint(0, &pid_temp) < 0 /*|| argptr(0, &myProc, sizeof(char*)) < 0*/)
-        return -1;
-
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->pid == pid_temp){
-            cprintf("damet jarm %s\n", p->name);
-        }
-    }
-    return 0;
 }
