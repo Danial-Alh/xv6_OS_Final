@@ -4,7 +4,7 @@
 
 #include "user.h"
 #include "fcntl.h"
-#include "proc.h"
+
 
 struct test {
     char name;
@@ -63,7 +63,7 @@ load(void)
 int main()
 {
 //    char *temp = "backup1.1";
-    struct proc *p;
+    struct MyProc *p;
     saveProc(getpid(), p);
 //    load();
 

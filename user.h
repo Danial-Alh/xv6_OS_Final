@@ -3,6 +3,11 @@
 struct stat;
 struct rtcdate;
 
+struct MyProc {
+    char name;
+    int number;
+};
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
@@ -25,7 +30,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-void saveProc(int, struct proc*);
+void saveProc(int, struct MyProc*);
 
 // ulib.c
 int stat(char*, struct stat*);
