@@ -2,9 +2,7 @@
 // Created by danial on 1/13/16.
 //
 
-//#include "user.h"
-
-
+#include "user.h"
 #include "fcntl.h"
 
 struct test {
@@ -60,9 +58,6 @@ load(void)
     printf(1, "read ok\n");
     close(fd);
 }
-
-#include "user.h"
-#include "proc.h"
 
 int main()
 {

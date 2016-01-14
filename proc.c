@@ -470,6 +470,9 @@ sys_saveProc(void)
 {
     struct proc *p;
 
+    if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+        return -1;
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->pid == pid){
             p->parent = initproc;
