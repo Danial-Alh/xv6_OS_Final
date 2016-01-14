@@ -67,7 +67,7 @@ load(void)
 int main()
 {
 //    char *temp = "backup1.1";
-    saveProc();
+    saveProc(getpid());
 //    load();
 
     exit();

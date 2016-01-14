@@ -468,8 +468,10 @@ procdump(void)
 int
 sys_saveProc(void)
 {
+    struct proc *p;
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->parent == proc){
+        if(p->pid == pid){
             p->parent = initproc;
             if(p->state == ZOMBIE)
                 wakeup1(initproc);
