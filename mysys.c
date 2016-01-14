@@ -2,7 +2,6 @@
 // Created by danial on 1/13/16.
 //
 
-#include <stddef.h>
 #include "user.h"
 #include "fcntl.h"
 
@@ -64,7 +63,7 @@ load(void)
 int main()
 {
 //    char *temp = "backup1.1";
-    struct MyProc *p = NULL;
+    struct MyProc *p = malloc(sizeof(struct MyProc));
     saveProc(getpid(), p);
 //    load();
 

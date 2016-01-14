@@ -6,7 +6,6 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-#include "user.h"
 
 struct {
   struct spinlock lock;
@@ -469,13 +468,12 @@ procdump(void)
 int
 sys_saveProc(void)
 {
-    char *myProc;
+//    char *myProc;
     struct proc *p;
 
     int pid_temp = 0;
 
-    sys_open();
-    if(argint(0, &pid_temp) < 0 || argptr(0, &myProc, sizeof(struct MyProc*)) < 0)
+    if(argint(0, &pid_temp) < 0 /*|| argptr(0, &myProc, sizeof(char*)) < 0*/)
         return -1;
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
