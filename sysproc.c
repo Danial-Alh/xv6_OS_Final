@@ -14,6 +14,12 @@ sys_fork(void)
 }
 
 int
+sys_myFork(void)
+{
+    return myFork();
+}
+
+int
 sys_exit(void)
 {
   exit();

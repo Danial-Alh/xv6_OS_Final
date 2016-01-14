@@ -1,5 +1,4 @@
 #include "types.h"
-#include "MyStructs.h"
 
 struct stat;
 struct rtcdate;

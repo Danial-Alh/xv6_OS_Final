@@ -483,7 +483,7 @@ sys_loadProc(void)
     int result = 0;
     struct proc loadedProc;
     result = fileread(file, (char*)&loadedProc, sizeof(struct proc));
-
+    myFork();
     cprintf("file readed, procName: %s\n", loadedProc.name);
     cprintf("pid kernel mode read: %d\n", loadedProc.pid);
     proc->ofile[fd] = 0;
