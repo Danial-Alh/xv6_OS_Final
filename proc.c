@@ -130,7 +130,7 @@ growproc(int n)
 }
 
 int
-myAllocProc_kernel(struct proc savedProc)
+myAllocProc_kernel(struct proc *savedProc)
 {
     struct proc *p;
     char *sp;
@@ -148,7 +148,7 @@ myAllocProc_kernel(struct proc savedProc)
     release(&ptable.lock);
 
     // Allocate kernel stack.
-    p->kstack = savedProc.kstack;
+    p->kstack = savedProc->kstack;
     /*if ((p->kstack = kalloc()) == 0)
     {
         p->state = UNUSED;
@@ -158,43 +158,45 @@ myAllocProc_kernel(struct proc savedProc)
 
     // Leave room for trap frame.
 //    sp -= sizeof *p->tf;
-    p->tf = savedProc.tf;
+    p->tf = savedProc->tf;
 //    p->tf = (struct trapframe *) sp;
 
     // Set up new context to start executing at forkret,
     // which returns to trapret.
-    sp -= 4;
-    *(uint *) sp = (uint) trapret;
+//    sp -= 4;
+//    *(uint *) sp = (uint) trapret;
 
-    sp -= sizeof *p->context;
-    p->context = (struct context *) sp;
-    memset(p->context, 0, sizeof *p->context);
+//    sp -= sizeof *p->context;
+    p->context = savedProc->context;
+//    p->context = (struct context *) sp;
+//    memset(p->context, 0, sizeof *p->context);
     p->context->eip = (uint) forkret;
 
     return p;
 }
 
 int
-myFork_kernel(void)
+myFork_kernel(struct proc *savedProc)
 {
     int i, pid;
     struct proc *np;
 
     // Allocate process.
-    if ((np = myAllocProc_kernel()) == 0)
+    if ((np = myAllocProc_kernel(savedProc)) == 0)
         return -1;
 
     // Copy process state from p.
-    if ((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0)
-    {
-        kfree(np->kstack);
-        np->kstack = 0;
-        np->state = UNUSED;
-        return -1;
-    }
-    np->sz = proc->sz;
+    np->pgdir = savedProc->pgdir;
+//    if ((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0)
+//    {
+//        kfree(np->kstack);
+//        np->kstack = 0;
+//        np->state = UNUSED;
+//        return -1;
+//    }
+    np->sz = savedProc->sz;
     np->parent = proc;
-    *np->tf = *proc->tf;
+    *np->tf = *savedProc->tf;
 
     // Clear %eax so that fork returns 0 in the child.
     np->tf->eax = 0;
