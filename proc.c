@@ -130,7 +130,7 @@ growproc(int n)
 }
 
 int
-myAllocProc_kernel(void)
+myAllocProc_kernel(struct proc savedProc)
 {
     struct proc *p;
     char *sp;
@@ -148,16 +148,18 @@ myAllocProc_kernel(void)
     release(&ptable.lock);
 
     // Allocate kernel stack.
-    if ((p->kstack = kalloc()) == 0)
+    p->kstack = savedProc.kstack;
+    /*if ((p->kstack = kalloc()) == 0)
     {
         p->state = UNUSED;
         return 0;
-    }
-    sp = p->kstack + KSTACKSIZE;
+    }*/
+//    sp = p->kstack + KSTACKSIZE;
 
     // Leave room for trap frame.
-    sp -= sizeof *p->tf;
-    p->tf = (struct trapframe *) sp;
+//    sp -= sizeof *p->tf;
+    p->tf = savedProc.tf;
+//    p->tf = (struct trapframe *) sp;
 
     // Set up new context to start executing at forkret,
     // which returns to trapret.
@@ -179,7 +181,7 @@ myFork_kernel(void)
     struct proc *np;
 
     // Allocate process.
-    if ((np = allocproc()) == 0)
+    if ((np = myAllocProc_kernel()) == 0)
         return -1;
 
     // Copy process state from p.
