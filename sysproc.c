@@ -16,7 +16,7 @@ sys_fork(void)
 int
 sys_myFork(void)
 {
-    return myFork();
+    return myFork_kernel();
 }
 
 int

@@ -22,3 +22,4 @@
 #define SYS_close  21
 #define SYS_saveProc 22
 #define SYS_loadProc 23
+#define SYS_myFork 24
