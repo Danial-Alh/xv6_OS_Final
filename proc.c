@@ -202,11 +202,11 @@ myFork_kernel(struct proc *savedProc)
     np->tf->eax = 0;
 
     for (i = 0; i < NOFILE; i++)
-        if (proc->ofile[i])
-            np->ofile[i] = filedup(proc->ofile[i]);
-    np->cwd = idup(proc->cwd);
+        if (savedProc->ofile[i])
+            np->ofile[i] = filedup(savedProc->ofile[i]);
+    np->cwd = idup(savedProc->cwd);
 
-    safestrcpy(np->name, proc->name, sizeof(proc->name));
+    safestrcpy(np->name, savedProc->name, sizeof(savedProc->name));
 
     pid = np->pid;
 
