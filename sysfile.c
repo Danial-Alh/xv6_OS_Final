@@ -569,16 +569,8 @@ sys_loadProc(void)
 
     int pid;
     struct proc *new_proc = NULL;
-    pid = myFork(page_file, flag_file, page_file->ip->size);
-    getProc(proc->pid+2, &new_proc);
-    cprintf("new pcb updated successfuly\n");
-    *new_proc->context = savedContext;
-    cprintf("new pcb updated successfuly\n");
+    pid = myFork(page_file, flag_file, page_file->ip->size, &savedContext, &new_proc);
     *new_proc->tf = savedTf;
     cprintf("new pcb updated successfuly\n");
-//    struct proc *loadedProc = allocproc();
-//    result = fileread(file, loadedProc->kstack, KSTACKSIZE);
-//    cprintf("file readed, procName: %s\n", loadedProc->name);
-//    cprintf("pid kernel mode read: %d\n", loadedProc->pid);
     return pid;
 }
