@@ -7,7 +7,7 @@
 
 int main()
 {
-    int page_fd, context_fd, tf_fd, proc_fd;
+    int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
     printf(2, "pid user mode: %d\n", getpid());
 
     char argv[1][1] = {{""}};
@@ -20,12 +20,14 @@ int main()
     {
 
         page_fd = open("page_backup", O_CREATE | O_RDWR);
+        flag_fd = open("flag_backup", O_CREATE | O_RDWR);
         context_fd = open("context_backup", O_CREATE | O_RDWR);
         tf_fd = open("tf_backup", O_CREATE | O_RDWR);
         proc_fd = open("proc_backup", O_CREATE | O_RDWR);
 
-        saveProc(page_fd, context_fd, tf_fd, proc_fd);
+        saveProc(page_fd, flag_fd, context_fd, tf_fd, proc_fd);
         close(page_fd);
+        close(flag_fd);
         close(context_fd);
         close(tf_fd);
         close(proc_fd);

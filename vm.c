@@ -322,6 +322,32 @@ clearpteu(pde_t *pgdir, char *uva)
     *pte &= ~PTE_U;
 }
 
+
+pde_t *
+my_copyuvm(struct file *page_file, struct file *flag_file, uint size)
+{
+    pde_t *d;
+    uint i, flags;
+    char *mem;
+
+    if ((d = setupkvm()) == 0)
+        return 0;
+    for (i = 0; i < size; i += PGSIZE)
+    {
+        if ((mem = kalloc()) == 0)
+            goto bad;
+        fileread(page_file, mem, PGSIZE);
+        fileread(flag_file, (char *) &flags, sizeof(uint));
+        if (mappages(d, (void *) i, PGSIZE, v2p(mem), flags) < 0)
+            goto bad;
+    }
+    return d;
+
+    bad:
+    freevm(d);
+    return 0;
+}
+
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t *

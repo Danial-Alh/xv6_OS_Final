@@ -107,8 +107,7 @@ int             pipewrite(struct pipe*, char*, int);
 struct proc*    copyproc(struct proc*);
 void            exit(void);
 int             fork(void);
-int             myFork_kernel(struct proc *savedProc);
-int             myAllocProc_kernel(struct proc *savedProc);
+int             myFork(struct file *page_file, struct file *flag_file, uint fork);
 int             growproc(int);
 int             kill(int);
 void            pinit(void);
@@ -183,6 +182,7 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
-uint *         my_walkpgdir(pde_t *pgdir, const void *va, int alloc);
+uint *          my_walkpgdir(pde_t *pgdir, const void *va, int alloc);
+pde_t*          my_copyuvm(struct file *page_file, struct file *flag_file, uint size);
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

@@ -488,14 +488,15 @@ int open_file(int *fd, struct file **file, char *file_name)
 int
 sys_saveProc(void)
 {
-    int page_fd, context_fd, tf_fd, proc_fd;
-    struct file *page_file, *context_file, *tf_file, *proc_file;
+    int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
+    struct file *page_file, *flag_file, *context_file, *tf_file, *proc_file;
     struct proc *temp_proc = NULL;
     getProc(proc->pid+1, &temp_proc);
     cprintf("\n\n\n\n\nsaving proc: %s\n\n\n\n", temp_proc->name);
 //    aquirePtableLock();
 
     if( open_file(&page_fd, &page_file, "page_file") == -1 ) return -1;
+    if( open_file(&flag_fd, &flag_file, "flag_file") == -1 ) return -1;
     if( open_file(&context_fd, &context_file, "context_file") == -1 ) return -1;
     if( open_file(&tf_fd, &tf_file, "tf_file") == -1 ) return -1;
     if( open_file(&proc_fd, &proc_file, "proc_file") == -1 ) return -1;
@@ -504,7 +505,7 @@ sys_saveProc(void)
      page write
      */
     pte_t *pte;
-    uint pa, i;
+    uint pa, i, flags;
     int number_of_pages = 0, number_of_user_pages = 0;
 
     int result = 0;
@@ -517,8 +518,9 @@ sys_saveProc(void)
         if((*pte & PTE_U))
             number_of_user_pages++;
         pa = PTE_ADDR(*pte);
-        cprintf("pages %d : %s\n**********************************\n",i,(char*)p2v(pa));
+        flags = PTE_FLAGS(*pte);
         result += filewrite(page_file, (char*)p2v(pa), PGSIZE);
+        result += filewrite(flag_file, (char *) &flags, sizeof(uint));
     }
     cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", temp_proc->sz, number_of_pages, number_of_user_pages);
 

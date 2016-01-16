@@ -25,7 +25,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-void saveProc(int page_fd, int context_fd, int tf_fd, int proc_fd);
+void saveProc(int page_fd, int flag_fd, int context_fd, int tf_fd, int proc_fd);
 void loadProc(int);
 
 // ulib.c
