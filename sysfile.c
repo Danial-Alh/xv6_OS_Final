@@ -502,7 +502,7 @@ sys_saveProc(void)
     if( open_file(&proc_fd, &proc_file, "proc_file") == -1 ) return -1;
 
     /*
-     page write
+     page and flags write
      */
     pte_t *pte;
     uint pa, i, flags;
@@ -550,23 +550,35 @@ sys_saveProc(void)
 int
 sys_loadProc(void)
 {
-    int fd;
-    struct file *file;
-    if (argfd(0, &fd, &file) < 0)
-        return -1;
-    if (fd >= 0)
-    {
-        cprintf("ok: read backup file succeed\nfile size: %d\n", file->ip->size);
-    } else
-    {
-        cprintf("error: read backup file failed\n");
-        return -1;
-    }
+    int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
+    struct file *page_file, *flag_file, *context_file, *tf_file, *proc_file;
 
-    int result = 0;
+    if( open_file(&page_fd, &page_file, "page_file") == -1 ) return -1;
+    if( open_file(&flag_fd, &flag_file, "flag_file") == -1 ) return -1;
+    if( open_file(&context_fd, &context_file, "context_file") == -1 ) return -1;
+    if( open_file(&tf_fd, &tf_file, "tf_file") == -1 ) return -1;
+    if( open_file(&proc_fd, &proc_file, "proc_file") == -1 ) return -1;
+
+    struct context savedContext;
+    struct trapframe savedTf;
+    struct proc savedProc;
+
+    fileread(context_file, (char *) &savedContext, sizeof(struct context));
+    fileread(tf_file, (char *) &savedTf, sizeof(struct trapframe));
+    fileread(proc_file, (char *) &savedProc, sizeof(struct proc));
+
+    int pid;
+    struct proc *new_proc = NULL;
+    pid = myFork(page_file, flag_file, page_file->ip->size);
+    getProc(proc->pid+2, &new_proc);
+    cprintf("new pcb updated successfuly\n");
+    *new_proc->context = savedContext;
+    cprintf("new pcb updated successfuly\n");
+    *new_proc->tf = savedTf;
+    cprintf("new pcb updated successfuly\n");
 //    struct proc *loadedProc = allocproc();
 //    result = fileread(file, loadedProc->kstack, KSTACKSIZE);
 //    cprintf("file readed, procName: %s\n", loadedProc->name);
 //    cprintf("pid kernel mode read: %d\n", loadedProc->pid);
-    return result;
+    return pid;
 }

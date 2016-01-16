@@ -132,10 +132,10 @@ growproc(int n)
 int
 myFork(struct file *page_file, struct file *flag_file, uint size)
 {
-    int i, pid;
+    int pid;
     struct proc *np;
 
-    cprintf("fork here!!!\n");
+    cprintf("my fork here!!!\n");
     // Allocate process.
     if ((np = allocproc()) == 0)
         return -1;
@@ -150,14 +150,14 @@ myFork(struct file *page_file, struct file *flag_file, uint size)
     }
     np->sz = size;
     np->parent = proc;
-    *np->tf = *proc->tf;
+//    *np->tf = *proc->tf;
 
     // Clear %eax so that fork returns 0 in the child.
     np->tf->eax = 0;
 
-    for (i = 0; i < NOFILE; i++)
-        if (proc->ofile[i])
-            np->ofile[i] = filedup(proc->ofile[i]);
+//    for (i = 0; i < NOFILE; i++)
+//        if (proc->ofile[i])
+//            np->ofile[i] = filedup(proc->ofile[i]);
     if ((np->cwd = namei("counter")) == 0)
         return -1;
 
