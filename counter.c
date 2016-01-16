@@ -3,11 +3,18 @@
 //
 
 #include "user.h"
+#include "fcntl.h"
 
 int main()
 {
     int i = 0;
-    for(; i < 100; i++ )
+    for(; i < 30; i++ )
+    {
         printf(2, "counter %d\n", i);
+        if (i == 5)
+        {
+            saveProc();
+        }
+    }
     exit();
 }

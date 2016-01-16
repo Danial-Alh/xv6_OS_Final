@@ -130,32 +130,31 @@ growproc(int n)
 }
 
 int
-myFork(struct file *page_file, struct file *flag_file, uint size, struct context *savedContext,
+myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc,
        struct proc **new_proc)
 {
     int pid;
     struct proc *np;
 
-    cprintf("my fork here!!!\n");
+    cprintf("loading saved process!!!\n");
     // Allocate process.
     if ((np = allocproc()) == 0)
         return -1;
     *new_proc = np;
-    *np->context = *savedContext;
+    *np->context = *savedProc->context;
     np->context->eip = (uint) forkret;
+    *np->tf = *savedProc->tf;
 
     // Copy process state from p.
-    if ((np->pgdir = my_copyuvm(page_file, flag_file, size)) == 0)
+    if ((np->pgdir = my_copyuvm(page_file, flag_file, savedProc->sz)) == 0)
     {
         kfree(np->kstack);
         np->kstack = 0;
         np->state = UNUSED;
         return -1;
     }
-    np->sz = size;
-    np->parent = proc;
-//    *np->tf = *proc->tf;
-
+    np->sz = savedProc->sz;
+    np->parent = savedProc->parent;
     // Clear %eax so that fork returns 0 in the child.
     np->tf->eax = 0;
 

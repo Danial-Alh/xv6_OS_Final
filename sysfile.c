@@ -469,13 +469,66 @@ sys_pipe(void)
     return 0;
 }
 
-
-int open_file(int *fd, struct file **file, char *file_name)
+int
+openFile(char *path, int omode)
 {
-    if (argfd(0, fd, file) < 0)
+    int fd;
+    struct file *f;
+    struct inode *ip;
+
+    begin_op();
+
+    if (omode & O_CREATE)
+    {
+        ip = create(path, T_FILE, 0, 0);
+        if (ip == 0)
+        {
+            end_op();
+            return -1;
+        }
+    } else
+    {
+        if ((ip = namei(path)) == 0)
+        {
+            end_op();
+            return -1;
+        }
+        ilock(ip);
+        if (ip->type == T_DIR && omode != O_RDONLY)
+        {
+            iunlockput(ip);
+            end_op();
+            return -1;
+        }
+    }
+
+    if ((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0)
+    {
+        if (f)
+            fileclose(f);
+        iunlockput(ip);
+        end_op();
+        return -1;
+    }
+    iunlock(ip);
+    end_op();
+
+    f->type = FD_INODE;
+    f->ip = ip;
+    f->off = 0;
+    f->readable = !(omode & O_WRONLY);
+    f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+    return fd;
+}
+
+int
+openFetchFile(int *fd, struct file **file, char *file_name, int omode)
+{
+    if ((*fd = openFile(file_name, omode)) < 0)
         return -1;
     if (fd >= 0)
     {
+        *file = proc->ofile[*fd];
         cprintf("ok: open \"%s\" file succeed\nfile size: %d\n", file_name, (*file)->ip->size);
     } else
     {
@@ -485,33 +538,40 @@ int open_file(int *fd, struct file **file, char *file_name)
     return 0;
 }
 
+
+
 int
 sys_saveProc(void)
 {
     int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
     struct file *page_file, *flag_file, *context_file, *tf_file, *proc_file;
-    struct proc *temp_proc = NULL;
-    getProc(proc->pid+1, &temp_proc);
-    cprintf("\n\n\n\n\nsaving proc: %s\n\n\n\n", temp_proc->name);
+//    struct proc *temp_proc = NULL;
+//    getProc(proc->pid+1, &temp_proc);
+//    cprintf("saving proc: %s\n", temp_proc->name);
+    cprintf("saving proc: %s\n", proc->name);
 //    aquirePtableLock();
 
-    if( open_file(&page_fd, &page_file, "page_file") == -1 ) return -1;
-    if( open_file(&flag_fd, &flag_file, "flag_file") == -1 ) return -1;
-    if( open_file(&context_fd, &context_file, "context_file") == -1 ) return -1;
-    if( open_file(&tf_fd, &tf_file, "tf_file") == -1 ) return -1;
-    if( open_file(&proc_fd, &proc_file, "proc_file") == -1 ) return -1;
+    /*
+     opening files
+     */
+    if( openFetchFile(&page_fd, &page_file, "page_file", O_CREATE | O_RDWR) == -1 ) return -1;
+    if( openFetchFile(&flag_fd, &flag_file, "flag_file", O_CREATE | O_RDWR) == -1 ) return -1;
+    if( openFetchFile(&context_fd, &context_file, "context_file", O_CREATE | O_RDWR) == -1 ) return -1;
+    if( openFetchFile(&tf_fd, &tf_file, "tf_file", O_CREATE | O_RDWR) == -1 ) return -1;
+    if( openFetchFile(&proc_fd, &proc_file, "proc_file", O_CREATE | O_RDWR) == -1 ) return -1;
 
     /*
      page and flags write
      */
+//    kill(proc->pid+1);
     pte_t *pte;
     uint pa, i, flags;
     int number_of_pages = 0, number_of_user_pages = 0;
 
     int result = 0;
-    for(i = 0; i < temp_proc->sz; i += PGSIZE){
+    for(i = 0; i < proc->sz; i += PGSIZE){
         number_of_pages++;
-        if((pte = my_walkpgdir(temp_proc->pgdir, (void *) i, 0)) == 0)
+        if((pte = my_walkpgdir(proc->pgdir, (void *) i, 0)) == 0)
             panic("copyuvm: pte should exist");
         if(!(*pte & PTE_P))
             panic("copyuvm: page not present");
@@ -522,28 +582,48 @@ sys_saveProc(void)
         result += filewrite(page_file, (char*)p2v(pa), PGSIZE);
         result += filewrite(flag_file, (char *) &flags, sizeof(uint));
     }
-    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", temp_proc->sz, number_of_pages, number_of_user_pages);
+    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", proc->sz, number_of_pages, number_of_user_pages);
 
     /*
      contex write
      */
-    filewrite(context_file, (char *) temp_proc->context, sizeof(struct context));
+    filewrite(context_file, (char *) proc->context, sizeof(struct context));
 
     /*
      tf write
      */
-    filewrite(tf_file, (char *) temp_proc->tf, sizeof(struct trapframe));
+    filewrite(tf_file, (char *) proc->tf, sizeof(struct trapframe));
 
     /*
      temp_proc write
      */
-    filewrite(proc_file, (char *) temp_proc, sizeof(struct proc));
+    filewrite(proc_file, (char *) proc, sizeof(struct proc));
 
 
     cprintf("pid kernel mode write: %d\n", proc->pid);
+    /*
+     closing files
+     */
+    proc->ofile[page_fd] = 0;
+    proc->ofile[flag_fd] = 0;
+    proc->ofile[context_fd] = 0;
+    proc->ofile[tf_fd] = 0;
+    proc->ofile[proc_fd] = 0;
+
+    cprintf("close\n");
+    fileclose(page_file);
+    cprintf("close\n");
+    fileclose(context_file);
+    cprintf("close\n");
+    fileclose(flag_file);
+    cprintf("close\n");
+    fileclose(tf_file);
+    cprintf("close\n");
+    fileclose(proc_file);
+    cprintf("close\n");
+    exit();
 //    releasePtableLock();
-    kill(proc->pid+1);
-    return result;
+    return 0;
 }
 
 
@@ -553,15 +633,18 @@ sys_loadProc(void)
     int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
     struct file *page_file, *flag_file, *context_file, *tf_file, *proc_file;
 
-    if( open_file(&page_fd, &page_file, "page_file") == -1 ) return -1;
-    if( open_file(&flag_fd, &flag_file, "flag_file") == -1 ) return -1;
-    if( open_file(&context_fd, &context_file, "context_file") == -1 ) return -1;
-    if( open_file(&tf_fd, &tf_file, "tf_file") == -1 ) return -1;
-    if( open_file(&proc_fd, &proc_file, "proc_file") == -1 ) return -1;
+    if( openFetchFile(&page_fd, &page_file, "page_file", O_RDONLY) == -1 ) return -1;
+    if( openFetchFile(&flag_fd, &flag_file, "flag_file", O_RDONLY) == -1 ) return -1;
+    if( openFetchFile(&context_fd, &context_file, "context_file", O_RDONLY) == -1 ) return -1;
+    if( openFetchFile(&tf_fd, &tf_file, "tf_file", O_RDONLY) == -1 ) return -1;
+    if( openFetchFile(&proc_fd, &proc_file, "proc_file", O_RDONLY) == -1 ) return -1;
 
     struct context savedContext;
     struct trapframe savedTf;
     struct proc savedProc;
+
+    savedProc.context = &savedContext;
+    savedProc.tf = &savedTf;
 
     fileread(context_file, (char *) &savedContext, sizeof(struct context));
     fileread(tf_file, (char *) &savedTf, sizeof(struct trapframe));
@@ -569,8 +652,25 @@ sys_loadProc(void)
 
     int pid;
     struct proc *new_proc = NULL;
-    pid = myFork(page_file, flag_file, page_file->ip->size, &savedContext, &new_proc);
-    *new_proc->tf = savedTf;
+    pid = myFork(page_file, flag_file, &savedProc, &new_proc);
     cprintf("new pcb updated successfuly\n");
+
+    proc->ofile[page_fd] = 0;
+    proc->ofile[flag_fd] = 0;
+    proc->ofile[context_fd] = 0;
+    proc->ofile[tf_fd] = 0;
+    proc->ofile[proc_fd] = 0;
+
+    cprintf("close\n");
+    fileclose(page_file);
+    cprintf("close\n");
+    fileclose(context_file);
+    cprintf("close\n");
+    fileclose(flag_file);
+    cprintf("close\n");
+    fileclose(tf_file);
+    cprintf("close\n");
+    fileclose(proc_file);
+    cprintf("close\n");
     return pid;
 }
