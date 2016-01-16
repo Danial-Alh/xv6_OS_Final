@@ -8,7 +8,7 @@ int main()
 {
     int fork_pid = loadProc();
     printf(2, "loading new Proc: %d\n", fork_pid);
-    if (fork_pid != 0)
+    if (fork_pid != 0)//parent
         wait();
     exit();
 }

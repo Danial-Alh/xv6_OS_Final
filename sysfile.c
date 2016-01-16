@@ -545,11 +545,7 @@ sys_saveProc(void)
 {
     int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
     struct file *page_file, *flag_file, *context_file, *tf_file, *proc_file;
-//    struct proc *temp_proc = NULL;
-//    getProc(proc->pid+1, &temp_proc);
-//    cprintf("saving proc: %s\n", temp_proc->name);
     cprintf("saving proc: %s\n", proc->name);
-//    aquirePtableLock();
 
     /*
      opening files
@@ -563,7 +559,6 @@ sys_saveProc(void)
     /*
      page and flags write
      */
-//    kill(proc->pid+1);
     pte_t *pte;
     uint pa, i, flags;
     int number_of_pages = 0, number_of_user_pages = 0;
@@ -622,7 +617,6 @@ sys_saveProc(void)
     fileclose(proc_file);
     cprintf("close\n");
     exit();
-//    releasePtableLock();
     return 0;
 }
 
