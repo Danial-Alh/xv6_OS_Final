@@ -130,8 +130,7 @@ growproc(int n)
 }
 
 int
-myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc,
-       struct proc **new_proc)
+myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc)
 {
     int pid;
     struct proc *np;
@@ -140,7 +139,6 @@ myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc,
     // Allocate process.
     if ((np = allocproc()) == 0)
         return -1;
-    *new_proc = np;
     *np->context = *savedProc->context;
     np->context->eip = (uint) forkret;
     *np->tf = *savedProc->tf;

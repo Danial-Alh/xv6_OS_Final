@@ -643,16 +643,17 @@ sys_loadProc(void)
     struct trapframe savedTf;
     struct proc savedProc;
 
-    savedProc.context = &savedContext;
-    savedProc.tf = &savedTf;
 
     fileread(context_file, (char *) &savedContext, sizeof(struct context));
     fileread(tf_file, (char *) &savedTf, sizeof(struct trapframe));
     fileread(proc_file, (char *) &savedProc, sizeof(struct proc));
 
+    *savedProc.context = savedContext;
+    *savedProc.tf = savedTf;
+
+
     int pid;
-    struct proc *new_proc = NULL;
-    pid = myFork(page_file, flag_file, &savedProc, &new_proc);
+    pid = myFork(page_file, flag_file, &savedProc);
     cprintf("new pcb updated successfuly\n");
 
     proc->ofile[page_fd] = 0;
