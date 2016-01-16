@@ -139,31 +139,34 @@ myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc)
     // Allocate process.
     if ((np = allocproc()) == 0)
         return -1;
-    *np->context = *savedProc->context;
-    np->context->eip = (uint) forkret;
-    *np->tf = *savedProc->tf;
+
 
     // Copy process state from p.
     if ((np->pgdir = my_copyuvm(page_file, flag_file, savedProc->sz)) == 0)
     {
+        cprintf("khar!\n");
         kfree(np->kstack);
         np->kstack = 0;
         np->state = UNUSED;
         return -1;
     }
+
+    *np->context = *savedProc->context;
+    np->context->eip = (uint) forkret;
+    *np->tf = *savedProc->tf;
     np->sz = savedProc->sz;
-    np->parent = savedProc->parent;
+    np->parent = proc;
     // Clear %eax so that fork returns 0 in the child.
     np->tf->eax = 0;
 
-//    int i = 0;
-//    for (i = 0; i < NOFILE; i++)
-//        if (savedProc->ofile[i])
-//            np->ofile[i] = filedup(savedProc->ofile[i]);
+    int i = 0;
+    for (i = 0; i < NOFILE; i++)
+        if (savedProc->ofile[i])
+            np->ofile[i] = filedup(savedProc->ofile[i]);
     if ((np->cwd = namei("counter")) == 0)
         return -1;
 
-    safestrcpy(np->name, proc->name, sizeof(proc->name));
+    safestrcpy(np->name, savedProc->name, sizeof(savedProc->name));
 
     pid = np->pid;
 
