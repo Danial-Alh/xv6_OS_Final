@@ -41,6 +41,7 @@ allocproc(void)
     struct proc *p;
     char *sp;
 
+    cprintf("allocproc here!!!\n");
     acquire(&ptable.lock);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
         if (p->state == UNUSED)
@@ -131,7 +132,7 @@ growproc(int n)
 
 int
 myAllocProc_kernel(struct proc *savedProc)
-{
+{/*
     struct proc *p;
     char *sp;
 
@@ -149,11 +150,11 @@ myAllocProc_kernel(struct proc *savedProc)
 
     // Allocate kernel stack.
     p->kstack = savedProc->kstack;
-    /*if ((p->kstack = kalloc()) == 0)
-    {
-        p->state = UNUSED;
-        return 0;
-    }*/
+//    if ((p->kstack = kalloc()) == 0)
+//    {
+//        p->state = UNUSED;
+//        return 0;
+//    }
 //    sp = p->kstack + KSTACKSIZE;
 
     // Leave room for trap frame.
@@ -172,12 +173,13 @@ myAllocProc_kernel(struct proc *savedProc)
 //    memset(p->context, 0, sizeof *p->context);
     p->context->eip = (uint) forkret;
 
-    return p;
+    return p;*/
+    return 0;
 }
 
 int
 myFork_kernel(struct proc *savedProc)
-{
+{/*
     int i, pid;
     struct proc *np;
 
@@ -215,7 +217,8 @@ myFork_kernel(struct proc *savedProc)
     np->state = RUNNABLE;
     release(&ptable.lock);
 
-    return pid;
+    return pid;*/
+    return 0;
 }
 
 // Create a new process copying p as the parent.
@@ -227,6 +230,7 @@ fork(void)
     int i, pid;
     struct proc *np;
 
+    cprintf("fork here!!!\n");
     // Allocate process.
     if ((np = allocproc()) == 0)
         return -1;

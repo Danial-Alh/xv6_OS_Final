@@ -72,6 +72,7 @@ runcmd(struct cmd *cmd)
     panic("runcmd");
 
   case EXEC:
+      printf(1, "runcmd exec\n");
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit();
@@ -80,7 +81,8 @@ runcmd(struct cmd *cmd)
     break;
 
   case REDIR:
-    rcmd = (struct redircmd*)cmd;
+      printf(1, "runcmd redir\n");
+          rcmd = (struct redircmd*)cmd;
     close(rcmd->fd);
     if(open(rcmd->file, rcmd->mode) < 0){
       printf(2, "open %s failed\n", rcmd->file);
@@ -90,7 +92,8 @@ runcmd(struct cmd *cmd)
     break;
 
   case LIST:
-    lcmd = (struct listcmd*)cmd;
+      printf(1, "runcmd list\n");
+          lcmd = (struct listcmd*)cmd;
     if(fork1() == 0)
       runcmd(lcmd->left);
     wait();
@@ -98,7 +101,8 @@ runcmd(struct cmd *cmd)
     break;
 
   case PIPE:
-    pcmd = (struct pipecmd*)cmd;
+      printf(1, "runcmd pipe\n");
+          pcmd = (struct pipecmd*)cmd;
     if(pipe(p) < 0)
       panic("pipe");
     if(fork1() == 0){
@@ -122,7 +126,9 @@ runcmd(struct cmd *cmd)
     break;
     
   case BACK:
-    bcmd = (struct backcmd*)cmd;
+      printf(1, "runcmd back\n");
+
+          bcmd = (struct backcmd*)cmd;
     if(fork1() == 0)
       runcmd(bcmd->cmd);
     break;

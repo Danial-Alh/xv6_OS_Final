@@ -65,8 +65,9 @@ int main()
     printf(2, "pid user mode: %d\n", getpid());
     fd = open("backup", O_CREATE | O_RDWR);
     saveProc(fd);
-    fd = open("backup", O_RDONLY);
-    loadProc(fd);
+//    fd = open("backup", O_RDONLY);
+
+//    loadProc(fd, );
     exit();
 }
 
