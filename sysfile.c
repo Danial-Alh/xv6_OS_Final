@@ -14,6 +14,7 @@
 #include "file.h"
 #include "fcntl.h"
 #include "memlayout.h"
+#include "x86.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -468,22 +469,37 @@ sys_pipe(void)
 }
 
 
-int
-sys_saveProc(void)
+int open_file(int *fd, struct file **file, char *file_name)
 {
-    int fd;
-    struct file *file;
-    if (argfd(0, &fd, &file) < 0)
+    if (argfd(0, fd, file) < 0)
         return -1;
     if (fd >= 0)
     {
-        cprintf("ok: create backup file succeed\n");
+        cprintf("ok: open \"%s\" file succeed\nfile size: %d\n", file_name, (*file)->ip->size);
     } else
     {
-        cprintf("error: create backup file failed\n");
+        cprintf("error: open \"%s\" file failed\n", file_name);
         return -1;
     }
+    return 0;
+}
 
+int
+sys_saveProc(void)
+{
+    int page_fd, context_fd, tf_fd, proc_fd;
+    struct file *page_file, *context_file, *tf_file, *proc_file;
+
+//    aquirePtableLock();
+
+    if( open_file(&page_fd, &page_file, "page_file") == -1 ) return -1;
+    if( open_file(&context_fd, &context_file, "context_file") == -1 ) return -1;
+    if( open_file(&tf_fd, &tf_file, "tf_file") == -1 ) return -1;
+    if( open_file(&proc_fd, &proc_file, "proc_file") == -1 ) return -1;
+
+    /*
+     page write
+     */
     pte_t *pte;
     uint pa, i;
     int number_of_pages = 0, number_of_user_pages = 0;
@@ -498,17 +514,30 @@ sys_saveProc(void)
         if((*pte & PTE_U))
             number_of_user_pages++;
         pa = PTE_ADDR(*pte);
-//        memmove(mem, (char*)p2v(pa), PGSIZE);
-        result += filewrite(file, (char*)p2v(pa), PGSIZE);
+//        cprintf("pages %d : %s\n**********************************\n",i,(char*)p2v(pa));
+        result += filewrite(page_file, (char*)p2v(pa), PGSIZE);
     }
-    cprintf("\ntotoal pages: %d **** user pages: %d\n", number_of_pages, number_of_user_pages);
+    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", proc->sz, number_of_pages, number_of_user_pages);
 
-//    result = filewrite(file, (char *) v2p(0), proc->sz);
+    /*
+     contex write
+     */
+    filewrite(context_file, (char *) proc->context, sizeof(struct context));
+
+    /*
+     tf write
+     */
+    filewrite(tf_file, (char *) proc->tf, sizeof(struct trapframe));
+
+    /*
+     proc write
+     */
+    filewrite(proc_file, (char *) proc, sizeof(struct proc));
+
 
     cprintf("pid kernel mode write: %d\n", proc->pid);
-    proc->ofile[fd] = 0;
-    fileclose(file);
-
+//    releasePtableLock();
+    killProcess("counter");
     return result;
 }
 
@@ -522,7 +551,7 @@ sys_loadProc(void)
         return -1;
     if (fd >= 0)
     {
-        cprintf("ok: read backup file succeed\n");
+        cprintf("ok: read backup file succeed\nfile size: %d\n", file->ip->size);
     } else
     {
         cprintf("error: read backup file failed\n");
@@ -534,8 +563,5 @@ sys_loadProc(void)
 //    result = fileread(file, loadedProc->kstack, KSTACKSIZE);
 //    cprintf("file readed, procName: %s\n", loadedProc->name);
 //    cprintf("pid kernel mode read: %d\n", loadedProc->pid);
-    proc->ofile[fd] = 0;
-    fileclose(file);
-
     return result;
 }

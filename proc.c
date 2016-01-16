@@ -544,6 +544,41 @@ kill(int pid)
     return -1;
 }
 
+void
+aquirePtableLock()
+{
+    acquire(&ptable.lock);
+}
+
+void
+releasePtableLock()
+{
+    release(&ptable.lock);
+}
+
+
+int
+killProcess(char name[16])
+{
+    struct proc *p;
+
+    acquire(&ptable.lock);
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+        if (!strncmp(p->name, name, 16))
+        {
+            p->killed = 1;
+            // Wake process from sleep if necessary.
+            if (p->state == SLEEPING)
+                p->state = RUNNABLE;
+            release(&ptable.lock);
+            return 0;
+        }
+    }
+    release(&ptable.lock);
+    return -1;
+}
+
 //PAGEBREAK: 36
 // Print a process listing to console.  For debugging.
 // Runs when user types ^P on console.

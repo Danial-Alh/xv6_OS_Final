@@ -101,7 +101,7 @@ set(SOURCE_FILES
     vm.c
     wc.c
     x86.h
-    zombie.c cm.c MyStructs.h)
+    zombie.c cm.c MyStructs.h counter.c)
 set(PROJECT_BINARY_DIR /home/danial/Desktop/OS/xv6_clone/xv6-public)
 
 add_executable(xv6_public ${SOURCE_FILES})
