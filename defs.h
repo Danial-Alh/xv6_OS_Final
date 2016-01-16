@@ -120,9 +120,9 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-int             killProcess(char name[16]);
 void            aquirePtableLock();
 void            releasePtableLock();
+void            getProc(int pid, struct proc**);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

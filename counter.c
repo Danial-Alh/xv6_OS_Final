@@ -7,7 +7,7 @@
 int main()
 {
     int i = 0;
-    for(; i < 1000; i++ )
+    for(; i < 100; i++ )
         printf(2, "counter %d\n", i);
     exit();
 }

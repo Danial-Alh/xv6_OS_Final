@@ -4,6 +4,7 @@
 // user code, and calls into file.c and fs.c.
 //
 
+#include <stddef.h>
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -489,7 +490,9 @@ sys_saveProc(void)
 {
     int page_fd, context_fd, tf_fd, proc_fd;
     struct file *page_file, *context_file, *tf_file, *proc_file;
-
+    struct proc *temp_proc = NULL;
+    getProc(proc->pid+1, &temp_proc);
+    cprintf("\n\n\n\n\nsaving proc: %s\n\n\n\n", temp_proc->name);
 //    aquirePtableLock();
 
     if( open_file(&page_fd, &page_file, "page_file") == -1 ) return -1;
@@ -505,39 +508,39 @@ sys_saveProc(void)
     int number_of_pages = 0, number_of_user_pages = 0;
 
     int result = 0;
-    for(i = 0; i < proc->sz; i += PGSIZE){
+    for(i = 0; i < temp_proc->sz; i += PGSIZE){
         number_of_pages++;
-        if((pte = my_walkpgdir(proc->pgdir, (void *) i, 0)) == 0)
+        if((pte = my_walkpgdir(temp_proc->pgdir, (void *) i, 0)) == 0)
             panic("copyuvm: pte should exist");
         if(!(*pte & PTE_P))
             panic("copyuvm: page not present");
         if((*pte & PTE_U))
             number_of_user_pages++;
         pa = PTE_ADDR(*pte);
-//        cprintf("pages %d : %s\n**********************************\n",i,(char*)p2v(pa));
+        cprintf("pages %d : %s\n**********************************\n",i,(char*)p2v(pa));
         result += filewrite(page_file, (char*)p2v(pa), PGSIZE);
     }
-    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", proc->sz, number_of_pages, number_of_user_pages);
+    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", temp_proc->sz, number_of_pages, number_of_user_pages);
 
     /*
      contex write
      */
-    filewrite(context_file, (char *) proc->context, sizeof(struct context));
+    filewrite(context_file, (char *) temp_proc->context, sizeof(struct context));
 
     /*
      tf write
      */
-    filewrite(tf_file, (char *) proc->tf, sizeof(struct trapframe));
+    filewrite(tf_file, (char *) temp_proc->tf, sizeof(struct trapframe));
 
     /*
-     proc write
+     temp_proc write
      */
-    filewrite(proc_file, (char *) proc, sizeof(struct proc));
+    filewrite(proc_file, (char *) temp_proc, sizeof(struct proc));
 
 
     cprintf("pid kernel mode write: %d\n", proc->pid);
 //    releasePtableLock();
-    killProcess("counter");
+    kill(proc->pid+1);
     return result;
 }
 

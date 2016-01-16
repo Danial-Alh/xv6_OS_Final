@@ -557,26 +557,24 @@ releasePtableLock()
 }
 
 
-int
-killProcess(char name[16])
+void
+getProc(int pid, struct proc **result)
 {
     struct proc *p;
 
+    cprintf("proc searching for: %d\n", pid);
     acquire(&ptable.lock);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
-        if (!strncmp(p->name, name, 16))
+        cprintf("proc searching: %s\n", p->name);
+        if (p->pid == pid)
         {
-            p->killed = 1;
-            // Wake process from sleep if necessary.
-            if (p->state == SLEEPING)
-                p->state = RUNNABLE;
-            release(&ptable.lock);
-            return 0;
+            cprintf("proc found: %s\n", p->name);
+            *result = p;
+            break;
         }
     }
     release(&ptable.lock);
-    return -1;
 }
 
 //PAGEBREAK: 36
