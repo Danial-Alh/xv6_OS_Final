@@ -129,6 +129,51 @@ growproc(int n)
     return 0;
 }
 
+void myExit(struct proc* t_proc)
+{
+    struct proc *p;
+    int fd;
+
+    if (t_proc == initproc)
+        panic("init exiting");
+
+    // Close all open files.
+    for (fd = 0; fd < NOFILE; fd++)
+    {
+        if (t_proc->ofile[fd])
+        {
+            fileclose(t_proc->ofile[fd]);
+            t_proc->ofile[fd] = 0;
+        }
+    }
+
+    begin_op();
+    iput(t_proc->cwd);
+    end_op();
+    t_proc->cwd = 0;
+
+    acquire(&ptable.lock);
+
+    // Parent might be sleeping in wait().
+    wakeup1(t_proc->parent);
+
+    // Pass abandoned children to init.
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+        if (p->parent == t_proc)
+        {
+            p->parent = initproc;
+            if (p->state == ZOMBIE)
+                wakeup1(initproc);
+        }
+    }
+
+    // Jump into the scheduler, never to return.
+    t_proc->state = ZOMBIE;
+    sched();
+    panic("zombie exit");
+}
+
 int
 myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc)
 {
@@ -162,7 +207,7 @@ myFork(struct file *page_file, struct file *flag_file, struct proc *savedProc)
     int i = 0;
     for (i = 0; i < NOFILE; i++)
         if (savedProc->ofile[i])
-            np->ofile[i] = filedup(savedProc->ofile[i]);
+            np->ofile[i] = 0;
     if ((np->cwd = namei("counter")) == 0)
         return -1;
 

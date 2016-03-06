@@ -538,15 +538,16 @@ openFetchFile(int *fd, struct file **file, char *file_name, int omode)
     return 0;
 }
 
-
-
 int
 sys_saveProc(void)
 {
     int page_fd, flag_fd, context_fd, tf_fd, proc_fd;
     struct file *page_file, *flag_file, *context_file, *tf_file, *proc_file;
-    cprintf("saving proc: %s\n", proc->name);
 
+    struct proc *temp_proc;
+    getProc(proc->pid + 1, &temp_proc);
+//    myExit(temp_proc);
+    cprintf("saving proc: %s\n", temp_proc->name);
     /*
      opening files
      */
@@ -564,9 +565,9 @@ sys_saveProc(void)
     int number_of_pages = 0, number_of_user_pages = 0;
 
     int result = 0;
-    for(i = 0; i < proc->sz; i += PGSIZE){
+    for(i = 0; i < temp_proc->sz; i += PGSIZE){
         number_of_pages++;
-        if((pte = my_walkpgdir(proc->pgdir, (void *) i, 0)) == 0)
+        if((pte = my_walkpgdir(temp_proc->pgdir, (void *) i, 0)) == 0)
             panic("copyuvm: pte should exist");
         if(!(*pte & PTE_P))
             panic("copyuvm: page not present");
@@ -577,22 +578,22 @@ sys_saveProc(void)
         result += filewrite(page_file, (char*)p2v(pa), PGSIZE);
         result += filewrite(flag_file, (char *) &flags, sizeof(uint));
     }
-    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", proc->sz, number_of_pages, number_of_user_pages);
+    cprintf("\nsz: %d\ntotoal pages: %d **** user pages: %d\n", temp_proc->sz, number_of_pages, number_of_user_pages);
 
     /*
      contex write
      */
-    filewrite(context_file, (char *) proc->context, sizeof(struct context));
+    filewrite(context_file, (char *) temp_proc->context, sizeof(struct context));
 
     /*
      tf write
      */
-    filewrite(tf_file, (char *) proc->tf, sizeof(struct trapframe));
+    filewrite(tf_file, (char *) temp_proc->tf, sizeof(struct trapframe));
 
     /*
      temp_proc write
      */
-    filewrite(proc_file, (char *) proc, sizeof(struct proc));
+    filewrite(proc_file, (char *) temp_proc, sizeof(struct proc));
 
 
     cprintf("pid kernel mode write: %d\n", proc->pid);
@@ -616,8 +617,8 @@ sys_saveProc(void)
     cprintf("close\n");
     fileclose(proc_file);
     cprintf("close\n");
-    exit();
-    return 0;
+//    exit();
+    return result;
 }
 
 
@@ -633,6 +634,7 @@ sys_loadProc(void)
     if( openFetchFile(&tf_fd, &tf_file, "tf_file", O_RDONLY) == -1 ) return -1;
     if( openFetchFile(&proc_fd, &proc_file, "proc_file", O_RDONLY) == -1 ) return -1;
 
+//    cprintf("*******here*******\n*******here*******\n*******here*******\n*******here*******\n*******here*******\n");
     struct context savedContext;
     struct trapframe savedTf;
     struct proc savedProc;

@@ -122,7 +122,7 @@ void            yield(void);
 void            aquirePtableLock();
 void            releasePtableLock();
 void            getProc(int pid, struct proc**);
-
+void            myExit(struct proc*);
 // swtch.S
 void            swtch(struct context**, struct context*);
 
